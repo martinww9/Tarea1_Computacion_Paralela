@@ -7,10 +7,11 @@ import java.util.ArrayList;
 
 
 public interface InterfazDeServer extends Remote{
-	public ArrayList <Persona> getPersonas() throws RemoteException;
-	public Persona Persona(String nombre, int edad) throws RemoteException;
+	public ArrayList <Auto> getAutos() throws RemoteException;
+	public Auto Auto(int patente, String conductor, String tipoCombustible);
 	public void agregarPersona() throws IOException;
 	
-	String getDataFromAPi() throws RemoteException;
 	Object[] getUF() throws RemoteException;
+	String getDataFromApi() throws RemoteException;
+	
 }

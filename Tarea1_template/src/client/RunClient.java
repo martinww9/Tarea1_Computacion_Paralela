@@ -43,6 +43,9 @@ public class RunClient {
 					
 					break;
 				case 3:
+					client.getDataFromApi();
+					
+				case 4:
 					opcion = 0;
 					break;
 			}

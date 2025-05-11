@@ -16,6 +16,6 @@ public class RunServer {
 		registry.bind("server", server);
 		
 		System.out.println("Servidor arriba!");
-		System.out.println(server.getPersonas());
+		System.out.println(server.getAutos());
 	}
 }

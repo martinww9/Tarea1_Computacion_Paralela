@@ -14,6 +14,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import common.Auto;
 import common.InterfazDeServer; 
 import common.Persona;
 
@@ -27,17 +32,8 @@ public class ServerImpl implements InterfazDeServer{
 		//crearBD();
 	}
 	
-	private ArrayList<Persona> BD_copia = new ArrayList<>();
+	private ArrayList<Auto> BD_copia = new ArrayList<>();
 	
-	
-	/*
-	private void crearBD() { 
-		Persona persona1 = new Persona("matias", 27);
-		Persona persona2 = new Persona("Maria eugenia", 31);
-		
-		BD_personas.add(persona1);
-		BD_personas.add(persona2);
-	}*/
 	
 	public void conectarBD () {
 		Connection connection = null;
@@ -62,14 +58,16 @@ public class ServerImpl implements InterfazDeServer{
 			
 			while(resultados.next()) {
 				//Revisar VALORES de BD
-				String nombre = resultados.getString("nombre");
-				String apellido = resultados.getString("nombre");
+				int patente = resultados.getInt("patente");
+				String conductor = resultados.getString("conductor");
+				String tipoCombustible = resultados.getString("Tipo de Combustible");
 				
-				Persona newPersona = new Persona(nombre, apellido);
 				
-				BD_copia.add(newPersona):
+				Auto newAuto = new Auto(patente, conductor, tipoCombustible);
 				
-				System.out.println("" + nombre + "" + apellido);
+				BD_copia.add(newAuto):
+				
+				System.out.println("" + patente + "" + conductor + "" + tipoCombustible);
 			}
 			
 			System.out.println(resultados);
@@ -87,55 +85,100 @@ public class ServerImpl implements InterfazDeServer{
 	
 	
 	@Override
-	public ArrayList<Persona> getPersonas() {
-		return BD_personas;
+	public ArrayList<Auto> getAutos() {
+		return BD_copia;
 	}
 	
 	@Override
-	public Persona Persona(String nombre, int edad) {
-		Persona persona = new Persona(nombre, edad);
-		return persona;
+	public Auto Auto(int patente, String conductor, String tipoCombustible) {
+		Auto auto = new Auto(patente, conductor, tipoCombustible);
+		return auto;
 	}
 	
 	@Override
 	public void agregarPersona() throws IOException {
 		
-		System.out.println("Ingrese el nombre de la persona:");
-		String nombre = new BufferedReader(new InputStreamReader(System.in)).readLine();
+		System.out.println("Ingrese la patente del vehículo:");
+		int patente = Integer.parseInt(new BufferedReader(new InputStreamReader(System.in)).readLine());
 		System.out.println("");
 		
-		System.out.println("Ingrese la edad de la persona: ");
-		int edad = Integer.parseInt(new BufferedReader(new InputStreamReader(System.in)).readLine());
+		System.out.println("Ingrese el conductor del vehículo: ");
+		String conductor = (new BufferedReader(new InputStreamReader(System.in)).readLine());
 		System.out.println("");
 		
-		Persona persona = new Persona(nombre, edad);
+		System.out.println("Ingrese el tipo de combustible del vehículo: ");
+		String tipoCombustible = (new BufferedReader(new InputStreamReader(System.in)).readLine());
+		System.out.println("");
 		
-		BD_personas.add(persona);
+		Auto auto = new Auto(patente, conductor, tipoCombustible);
+		
+		BD_copia.add(auto);
 	}
 	
-	/*@Override
-	public Object[] getUF() {
-		 return Object objeto;
+	
+	public String getToken() {
+		String email = "CORREO";
+        String password = "CONTRASEÑA";
+        String urlString = "https://api.cne.cl/api/login?email=" + email + "&password=" + password;
+
+        try {
+            // Crear la URL de autenticación
+            URL url = new URL(urlString);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("POST");
+
+            // Verificar el estado de la respuesta
+            int status = con.getResponseCode();
+            if (status != 200) {
+                System.out.println("Error al autenticar. Código HTTP: " + status);
+                return null;
+            }
+
+            // Leer la respuesta de la API
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuilder content = new StringBuilder();
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+            in.close();
+            con.disconnect();
+
+            // Extraer el token de la respuesta
+            String response = content.toString();
+            String token = response.split(":\"")[1].split("\"")[0];
+            return token;
+
+        } catch (Exception e) {
+            System.out.println("Error al obtener token: " + e.getMessage());
+            return null;
+        }
+		
 	}
-	*/
 	
 	
 	@Override
-	public String getDataFromApi() {
+	public String getDataFromApi() throws RemoteException{
+		
+		String token = getToken();
+		
+		
 		String output = null;
 		
 		try {
-			URL apiUrl = new URL("");
-			
+			URL apiUrl = new URL("https://api.cne.cl/api/v4/estaciones");
 			
 			HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
 			
 			connection.setRequestMethod("GET");
 			
+			connection.setRequestProperty("Authorization", "Bearer " + token);
+            connection.setRequestProperty("Accept-Encoding", "gzip");
+			
 			int responseCode = connection.getResponseCode();
 			
 			if (responseCode == HttpURLConnection.HTTP_OK) {
-				BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream));
+				BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 				String inputLine;
 				StringBuilder response = new StringBuilder();
 				
@@ -144,7 +187,7 @@ public class ServerImpl implements InterfazDeServer{
 				}
 				
 				in.close();
-				output = response.toString():
+				output = response.toString();
 			} else {
 				System.out.println("Error al conectar a la API. Código de respuesta: " + responseCode);
 			}
@@ -155,8 +198,25 @@ public class ServerImpl implements InterfazDeServer{
 		return output;
 		
 		
+		ObjectMapper objectMapper = new ObjectMapper();
 		
+		try { 
+			JsonNode jsonNode = objectMapper.readTree(output);
+ 			String codigo = jsonNode.get("").get("").asText();
+ 			String nombre = jsonNode.get("").get("").asText();
+ 			
+ 			return new Object[] {codigo, nombre};
+ 			
+		} catch(JsonMappingException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		}
 		
-		
+		return null;
 	}
+	
+	
+	
+	
 }
