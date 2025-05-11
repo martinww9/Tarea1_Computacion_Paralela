@@ -14,11 +14,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import common.Auto;
+import common.Estacion;
 import common.InterfazDeServer; 
 import common.Persona;
 
@@ -65,7 +67,7 @@ public class ServerImpl implements InterfazDeServer{
 				
 				Auto newAuto = new Auto(patente, conductor, tipoCombustible);
 				
-				BD_copia.add(newAuto):
+				BD_copia.add(newAuto);
 				
 				System.out.println("" + patente + "" + conductor + "" + tipoCombustible);
 			}
@@ -96,7 +98,7 @@ public class ServerImpl implements InterfazDeServer{
 	}
 	
 	@Override
-	public void agregarPersona() throws IOException {
+	public void agregarAuto() throws IOException {
 		
 		System.out.println("Ingrese la patente del vehículo:");
 		int patente = Integer.parseInt(new BufferedReader(new InputStreamReader(System.in)).readLine());
@@ -197,6 +199,40 @@ public class ServerImpl implements InterfazDeServer{
 		
 		return output;
 		
+	}
+	
+	public ArrayList<Estacion> getBencinerasPorComunaYMarca(String comuna, String marca) throws RemoteException, JsonMappingException, JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+        String json = getDataFromApi();
+		JsonNode root = mapper.readTree(json);
+        JsonNode data = root.path("data");
+        ArrayList<Estacion> resultado = new ArrayList<>();
+        
+        
+        for (JsonNode estacion : data) {
+		    String comunaActual = estacion.path("ubicacion").path("nombre_comuna").asText();
+		    String marcaActual = estacion.path("distribuidor").path("marca").asText();
+
+		    if (comunaActual.equalsIgnoreCase(comuna) && marcaActual.equalsIgnoreCase(marca)) {
+		        String direccion = estacion.path("ubicacion").path("direccion").asText();
+
+		        String precio93 = estacion.path("precios").path("93").path("precio").asText(null);
+		        String precio95 = estacion.path("precios").path("95").path("precio").asText(null);
+		        String precio97 = estacion.path("precios").path("97").path("precio").asText(null);
+		        String precioDi  = estacion.path("precios").path("DI").path("precio").asText(null);
+		        String precioKe  = estacion.path("precios").path("KE").path("precio").asText(null);
+		        
+		        Estacion estacionObjeto = new Estacion(marcaActual, comunaActual, direccion, precio93, precio95, precio97, precioDi, precioKe);
+		        
+		        resultado.add(estacionObjeto);
+		    }
+		}
+	
+	    return resultado;
+	}
+	
+	
+	public String getPrecioxComuna(String tipoDeCombustible) {
 		
 		ObjectMapper objectMapper = new ObjectMapper();
 		
@@ -209,14 +245,10 @@ public class ServerImpl implements InterfazDeServer{
  			
 		} catch(JsonMappingException e) {
 			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			e.printStackTrace();
-		}
-		
+		} 
 		return null;
+		
+		
 	}
-	
-	
-	
 	
 }
