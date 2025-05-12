@@ -60,7 +60,7 @@ public class ServerImpl implements InterfazDeServer{
 			
 			while(resultados.next()) {
 				//Revisar VALORES de BD
-				int patente = resultados.getInt("patente");
+				String patente = resultados.getString("patente");
 				String conductor = resultados.getString("conductor");
 				String tipoCombustible = resultados.getString("Tipo de Combustible");
 				
@@ -92,7 +92,7 @@ public class ServerImpl implements InterfazDeServer{
 	}
 	
 	@Override
-	public Auto Auto(int patente, String conductor, String tipoCombustible) {
+	public Auto Auto(String patente, String conductor, String tipoCombustible) {
 		Auto auto = new Auto(patente, conductor, tipoCombustible);
 		return auto;
 	}
@@ -101,7 +101,7 @@ public class ServerImpl implements InterfazDeServer{
 	public void agregarAuto() throws IOException {
 		
 		System.out.println("Ingrese la patente del vehículo:");
-		int patente = Integer.parseInt(new BufferedReader(new InputStreamReader(System.in)).readLine());
+		String patente = (new BufferedReader(new InputStreamReader(System.in)).readLine());
 		System.out.println("");
 		
 		System.out.println("Ingrese el conductor del vehículo: ");

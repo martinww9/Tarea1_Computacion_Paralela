@@ -94,7 +94,7 @@ public class Client {
 	    
 }
 
-	private void menuSeleccion(Auto autoSeleccionado) {
+	private void menuSeleccion(Auto autoSeleccionado) throws JsonMappingException, JsonProcessingException, RemoteException {
 		// TODO Auto-generated method stub
 		Scanner scanner = new Scanner(System.in);
 	    boolean salir = false;

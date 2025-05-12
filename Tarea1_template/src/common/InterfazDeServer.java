@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 public interface InterfazDeServer extends Remote{
 	public ArrayList <Auto> getAutos() throws RemoteException;
-	public Auto Auto(int patente, String conductor, String tipoCombustible);
+	public Auto Auto(String patente, String conductor, String tipoCombustible);
 	
 	Object[] getUF() throws RemoteException;
 	String getDataFromApi() throws RemoteException;

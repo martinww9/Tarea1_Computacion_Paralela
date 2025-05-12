@@ -4,12 +4,12 @@ import java.io.Serializable;
 
 public class Auto implements Serializable{
 
-	private int patente;
+	private String patente;
 	private String conductor;
 	private String tipoCombustible;
 	
 	
-	public Auto(int patente, String conductor, String tipoCombustible) {
+	public Auto(String patente, String conductor, String tipoCombustible) {
 		setPatente(patente);
 		setConductor(conductor);
 		setTipoCombustible(tipoCombustible);
@@ -25,12 +25,12 @@ public class Auto implements Serializable{
 		this.conductor = conductor;
 	}
 
-	private void setPatente(int patente) {
+	private void setPatente(String patente) {
 		// TODO Auto-generated method stub
 		this.patente = patente;
 	}
 
-	public int getPatente() {
+	public String getPatente() {
 		return patente;
 	}
 	
