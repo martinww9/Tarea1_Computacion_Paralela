@@ -14,6 +14,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import java.util.Collections;
+import java.util.Comparator;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,8 +28,6 @@ import common.InterfazDeServer;
 import common.Persona;
 
 public class ServerImpl implements InterfazDeServer{
-	
-	
 	
 	public ServerImpl() throws RemoteException {
 		conectarBD();
@@ -85,7 +86,6 @@ public class ServerImpl implements InterfazDeServer{
 		}
 	}
 	
-	
 	@Override
 	public ArrayList<Auto> getAutos() {
 		return BD_copia;
@@ -111,12 +111,11 @@ public class ServerImpl implements InterfazDeServer{
 		System.out.println("Ingrese el tipo de combustible del vehículo: ");
 		String tipoCombustible = (new BufferedReader(new InputStreamReader(System.in)).readLine());
 		System.out.println("");
-		
+		//agregar opciones
 		Auto auto = new Auto(patente, conductor, tipoCombustible);
 		
 		BD_copia.add(auto);
 	}
-	
 	
 	public String getToken() {
 		String email = "CORREO";
@@ -157,7 +156,6 @@ public class ServerImpl implements InterfazDeServer{
         }
 		
 	}
-	
 	
 	@Override
 	public String getDataFromApi() throws RemoteException{
@@ -230,25 +228,56 @@ public class ServerImpl implements InterfazDeServer{
 	
 	    return resultado;
 	}
-	
-	
-	public String getPrecioxComuna(String tipoDeCombustible) {
-		
-		ObjectMapper objectMapper = new ObjectMapper();
-		
-		try { 
-			JsonNode jsonNode = objectMapper.readTree(output);
- 			String codigo = jsonNode.get("").get("").asText();
- 			String nombre = jsonNode.get("").get("").asText();
- 			
- 			return new Object[] {codigo, nombre};
- 			
-		} catch(JsonMappingException e) {
-			e.printStackTrace();
-		} 
-		return null;
-		
-		
+
+	public ArrayList<Estacion> getPrecioxComuna(String tipoDeCombustible, String comuna) {
+	    ObjectMapper objectMapper = new ObjectMapper();
+	    String json = getDataFromApi();
+	    JsonNode root = objectMapper.readTree(json); 
+	    JsonNode data = root.path("data");
+	    ArrayList<Estacion> resultado = new ArrayList<>();
+
+	    for (JsonNode estacion : data) {
+	        String comunaActual = estacion.path("ubicacion").path("nombre_comuna").asText();
+
+	        if (comunaActual.equalsIgnoreCase(comuna)) {
+	            String direccion = estacion.path("ubicacion").path("direccion").asText();
+
+	            String precio = estacion.path("precios").path(tipoDeCombustible).path("precio").asText(null);
+	            
+	            if (precio == null) {
+	                precio = "0"; 
+	            }
+
+	            String precio93 = estacion.path("precios").path("93").path("precio").asText(null);
+	            String precio95 = estacion.path("precios").path("95").path("precio").asText(null);
+	            String precio97 = estacion.path("precios").path("97").path("precio").asText(null);
+	            String precioDi  = estacion.path("precios").path("DI").path("precio").asText(null);
+	            String precioKe  = estacion.path("precios").path("KE").path("precio").asText(null);
+
+	            Estacion estacionObjeto = new Estacion(marcaActual, comunaActual, direccion, precio93, precio95, precio97, precioDi, precioKe);
+	            resultado.add(estacionObjeto);
+	        }
+	    }
+
+	    Collections.sort(resultado, new Comparator<Estacion>() {
+	        @Override
+	        public int compare(Estacion e1, Estacion e2) {
+
+	            Double precio1 = null;
+	            Double precio2 = null;
+
+	            try {
+	                precio1 = Double.parseDouble(e1.getPrecio(tipoDeCombustible)); 
+	                precio2 = Double.parseDouble(e2.getPrecio(tipoDeCombustible));
+	            } catch (NumberFormatException e) {
+	                return 0;
+	            }
+
+	            return precio1.compareTo(precio2);
+	        }
+	    });
+
+	    return resultado;
 	}
 	
 }

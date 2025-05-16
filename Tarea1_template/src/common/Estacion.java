@@ -32,6 +32,23 @@ public class Estacion{
     public String getPrecioDi() { return precioDi; }
     public String getPrecioKe() { return precioKe; }
     
+    public String getPrecio(String tipoDeCombustible) {
+        switch (tipoDeCombustible) {
+            case "93":
+                return this.precio93;
+            case "95":
+                return this.precio95;
+            case "97":
+                return this.precio97;
+            case "DI":
+                return this.precioDi;
+            case "KE":
+                return this.precioKe;
+            default:
+                return "0"; // Si no se encuentra el tipo de combustible, retornamos "0"
+        }
+    }
+    
     public void setMarcaActual(String marca) {
         this.marca = marca;
     }
