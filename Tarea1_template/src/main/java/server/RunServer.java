@@ -6,7 +6,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 import common.InterfazDeServer;
-import common.Persona;
 
 public class RunServer {
 	
