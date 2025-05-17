@@ -300,40 +300,15 @@ public class ServerImpl implements InterfazDeServer{
 
 	@Override
 	public ArrayList<Estacion> getBencinerasPorComunaYMarca(String comuna, String marca) throws RemoteException, JsonProcessingException {
-	    ObjectMapper mapper = new ObjectMapper();
-	    /*
-	    String json = getDataFromApi();
-
-	    if (json == null || json.isEmpty()) {
-	        throw new RemoteException("No se recibió respuesta válida de la API.");
-	    }
-
-	    
-	    JsonNode root = mapper.readTree(json);
-	    JsonNode data = root.path("data");
+		
+		ArrayList<Estacion> todasLasEstaciones = getDataFromApi();
 	    ArrayList<Estacion> resultado = new ArrayList<>();
 
-	    for (JsonNode estacion : data) {
-	        String comunaActual = estacion.path("ubicacion").path("nombre_comuna").asText();
-	        String marcaActual = estacion.path("distribuidor").path("marca").asText();
-
-	        //if (comunaActual.equalsIgnoreCase(comuna) || marcaActual.equalsIgnoreCase(marca)) 
-	        if (normalize(comunaActual).equals(normalize(comuna)) || normalize(marcaActual).equals(normalize(marca))) {
-	        
-	            String direccion = estacion.path("ubicacion").path("direccion").asText();
-
-	            String precio93 = estacion.path("precios").path("93").path("precio").asText(null);
-	            String precio95 = estacion.path("precios").path("95").path("precio").asText(null);
-	            String precio97 = estacion.path("precios").path("97").path("precio").asText(null);
-	            String precioDi  = estacion.path("precios").path("DI").path("precio").asText(null);
-	            String precioKe  = estacion.path("precios").path("KE").path("precio").asText(null);
-
-	            Estacion estacionObjeto = new Estacion(marcaActual, comunaActual, direccion, precio93, precio95, precio97, precioDi, precioKe);
-	            resultado.add(estacionObjeto);
+	    for (Estacion estacion : todasLasEstaciones) {
+	    	if (normalize(estacion.getComunaActual()).equals(normalize(comuna)) && normalize(estacion.getMarcaActual()).equals(normalize(marca))) {
+	    		resultado.add(estacion);
 	        }
 	    }
-	    */
-		ArrayList<Estacion> resultado = new ArrayList<>();
 	    return resultado;
 	}
 
