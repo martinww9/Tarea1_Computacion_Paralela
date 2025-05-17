@@ -22,7 +22,8 @@ public class RunClient {
             System.out.println("1. Mostrar Autos");
             System.out.println("2. Agregar Autos");
             System.out.println("3. Seleccionar Auto");
-            System.out.println("4. Salir\n");
+            System.out.println("4. VER LA API");
+            System.out.println("5. Salir\n");
 
 
 
@@ -44,8 +45,13 @@ public class RunClient {
                     break;
                 case 3:
                     client.seleccionarAuto();
-
+                    break;
+                    
                 case 4:
+                    client.getDataFromApi();
+                    break;
+
+                case 5:
                     opcion = 0;
                     break;
             }

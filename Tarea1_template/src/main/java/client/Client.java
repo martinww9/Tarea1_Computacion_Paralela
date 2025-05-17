@@ -24,7 +24,7 @@ public class Client {
     public Client() {};
 
     public void startClient() throws RemoteException, NotBoundException {
-        Registry registry = LocateRegistry.getRegistry("localhost", 1030);
+        Registry registry = LocateRegistry.getRegistry("localhost", 1044);
         server = (InterfazDeServer) registry.lookup("server");
     }
 
@@ -47,7 +47,10 @@ public class Client {
     }
 
     String getDataFromApi() throws RemoteException {
-        return server.getDataFromApi();
+        
+    	System.out.println(server.getDataFromApi());
+    	
+    	return server.getDataFromApi();
     }
 
 
@@ -133,13 +136,15 @@ public class Client {
 	    System.out.print("Ingrese la comuna donde realizó la compra: ");
 	    Scanner scanner = new Scanner(System.in);;
 		
-	    String comuna = scanner .nextLine();
+	    String comuna = scanner.nextLine();
 
 	    System.out.print("Ingrese la marca de la estación de servicio donde compró: ");
 	    String marca = scanner.nextLine();
 
 	    
 	    ArrayList<Estacion> estaciones = server.getBencinerasPorComunaYMarca(comuna, marca);
+	    
+	    if (estaciones.isEmpty())  System.out.println("No se encontraron estaciones para esa comuna y marca.");
 	    
 	    System.out.println("Estaciones disponibles en " + comuna + " de la marca " + marca + ":");
 

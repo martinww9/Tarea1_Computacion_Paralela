@@ -2,6 +2,7 @@ package server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -12,10 +13,12 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.Normalizer;
 import java.util.ArrayList;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.zip.GZIPInputStream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -139,112 +142,135 @@ public class ServerImpl implements InterfazDeServer{
 	}
 	
 	@Override
-	public String getToken() throws RemoteException{
-		String email = "CORREO";
-        String password = "CONTRASEÑA";
-        String urlString = "https://api.cne.cl/api/login?email=" + email + "&password=" + password;
+	public String getToken() throws RemoteException {
+	    String email = "davidm2201@hotmail.com";
+	    String password = "proyectoparalela1";
+	    String urlString = "https://api.cne.cl/api/login?email=" + email + "&password=" + password;
 
-        try {
-            URL url = new URL(urlString);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("POST");
+	    try {
+	        URL url = new URL(urlString);
+	        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+	        con.setRequestMethod("POST");
 
-            int status = con.getResponseCode();
-            if (status != 200) {
-                System.out.println("Error al autenticar. Código HTTP: " + status);
-                return null;
-            }
+	        int status = con.getResponseCode();
+	        if (status != 200) {
+	            System.out.println("Error al autenticar. Código HTTP: " + status);
+	            return null;
+	        }
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuilder content = new StringBuilder();
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-            }
-            in.close();
-            con.disconnect();
+	        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+	        StringBuilder content = new StringBuilder();
+	        String inputLine;
+	        while ((inputLine = in.readLine()) != null) {
+	            content.append(inputLine);
+	        }
+	        in.close();
+	        con.disconnect();
 
-            String response = content.toString();
-            String token = response.split(":\"")[1].split("\"")[0];
-            return token;
+	        String response = content.toString();
 
-        } catch (Exception e) {
-            System.out.println("Error al obtener token: " + e.getMessage());
-            return null;
-        }
-		
+	        ObjectMapper mapper = new ObjectMapper();
+	        JsonNode root = mapper.readTree(response);
+	        String token = root.path("token").asText(null);  // Ajusta "token" si la clave es distinta en la respuesta
+
+	        return token;
+
+	    } catch (Exception e) {
+	        System.out.println("Error al obtener token: " + e.getMessage());
+	        return null;
+	    }
+	}
+
+	@Override
+	public String getDataFromApi() throws RemoteException {
+	    String token = getToken();
+	    if (token == null) {
+	        throw new RemoteException("No se pudo obtener el token de autenticación.");
+	    }
+
+	    String output = null;
+
+	    try {
+	        URL apiUrl = new URL("https://api.cne.cl/api/v4/estaciones");
+	        HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
+
+	        connection.setRequestMethod("GET");
+	        connection.setRequestProperty("Authorization", "Bearer " + token);
+	        connection.setRequestProperty("Accept-Encoding", "gzip");
+
+	        int responseCode = connection.getResponseCode();
+
+	        if (responseCode == HttpURLConnection.HTTP_OK) {
+	            String encoding = connection.getContentEncoding();
+	            InputStream inputStream;
+
+	            if ("gzip".equalsIgnoreCase(encoding)) {
+	                inputStream = new GZIPInputStream(connection.getInputStream());
+	            } else {
+	                inputStream = connection.getInputStream();
+	            }
+
+	            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+	            StringBuilder response = new StringBuilder();
+	            String inputLine;
+
+	            while ((inputLine = in.readLine()) != null) {
+	                response.append(inputLine);
+	            }
+
+	            in.close();
+	            output = response.toString();
+	        } else {
+	            System.out.println("Error al conectar a la API. Código de respuesta: " + responseCode);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return output;
 	}
 	
-	@Override
-	public String getDataFromApi() throws RemoteException{
-		
-		String token = getToken();
-		
-		
-		String output = null;
-		
-		try {
-			URL apiUrl = new URL("https://api.cne.cl/api/v4/estaciones");
-			
-			HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
-			
-			connection.setRequestMethod("GET");
-			
-			connection.setRequestProperty("Authorization", "Bearer " + token);
-            connection.setRequestProperty("Accept-Encoding", "gzip");
-			
-			int responseCode = connection.getResponseCode();
-			
-			if (responseCode == HttpURLConnection.HTTP_OK) {
-				BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-				String inputLine;
-				StringBuilder response = new StringBuilder();
-				
-				while ((inputLine = in.readLine()) != null) {
-					response.append(inputLine);
-				}
-				
-				in.close();
-				output = response.toString();
-			} else {
-				System.out.println("Error al conectar a la API. Código de respuesta: " + responseCode);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return output;
-		
+	private String normalize(String input) {
+	    return Normalizer.normalize(input, Normalizer.Form.NFD)
+	                     .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
+	                     .toLowerCase();
 	}
-	
+
 	@Override
-	public ArrayList<Estacion> getBencinerasPorComunaYMarca(String comuna, String marca) throws RemoteException, JsonMappingException, JsonProcessingException {
-		ObjectMapper mapper = new ObjectMapper();
-        String json = getDataFromApi();
-		JsonNode root = mapper.readTree(json);
-        JsonNode data = root.path("data");
-        ArrayList<Estacion> resultado = new ArrayList<>();
-        
-        
-        for (JsonNode estacion : data) {
-		    String comunaActual = estacion.path("ubicacion").path("nombre_comuna").asText();
-		    String marcaActual = estacion.path("distribuidor").path("marca").asText();
+	public ArrayList<Estacion> getBencinerasPorComunaYMarca(String comuna, String marca) throws RemoteException, JsonProcessingException {
+	    ObjectMapper mapper = new ObjectMapper();
+	    String json = getDataFromApi();
 
-		    if (comunaActual.equalsIgnoreCase(comuna) && marcaActual.equalsIgnoreCase(marca)) {
-		        String direccion = estacion.path("ubicacion").path("direccion").asText();
+	    if (json == null || json.isEmpty()) {
+	        throw new RemoteException("No se recibió respuesta válida de la API.");
+	    }
 
-		        String precio93 = estacion.path("precios").path("93").path("precio").asText(null);
-		        String precio95 = estacion.path("precios").path("95").path("precio").asText(null);
-		        String precio97 = estacion.path("precios").path("97").path("precio").asText(null);
-		        String precioDi  = estacion.path("precios").path("DI").path("precio").asText(null);
-		        String precioKe  = estacion.path("precios").path("KE").path("precio").asText(null);
-		        
-		        Estacion estacionObjeto = new Estacion(marcaActual, comunaActual, direccion, precio93, precio95, precio97, precioDi, precioKe);
-		        
-		        resultado.add(estacionObjeto);
-		    }
-		}
-	
+	    
+	    JsonNode root = mapper.readTree(json);
+	    JsonNode data = root.path("data");
+	    ArrayList<Estacion> resultado = new ArrayList<>();
+
+	    for (JsonNode estacion : data) {
+	        String comunaActual = estacion.path("ubicacion").path("nombre_comuna").asText();
+	        String marcaActual = estacion.path("distribuidor").path("marca").asText();
+
+	        //if (comunaActual.equalsIgnoreCase(comuna) || marcaActual.equalsIgnoreCase(marca)) 
+	        if (normalize(comunaActual).equals(normalize(comuna)) || normalize(marcaActual).equals(normalize(marca))) {
+	        
+	            String direccion = estacion.path("ubicacion").path("direccion").asText();
+
+	            String precio93 = estacion.path("precios").path("93").path("precio").asText(null);
+	            String precio95 = estacion.path("precios").path("95").path("precio").asText(null);
+	            String precio97 = estacion.path("precios").path("97").path("precio").asText(null);
+	            String precioDi  = estacion.path("precios").path("DI").path("precio").asText(null);
+	            String precioKe  = estacion.path("precios").path("KE").path("precio").asText(null);
+
+	            Estacion estacionObjeto = new Estacion(marcaActual, comunaActual, direccion, precio93, precio95, precio97, precioDi, precioKe);
+	            resultado.add(estacionObjeto);
+	        }
+	    }
+
 	    return resultado;
 	}
 
