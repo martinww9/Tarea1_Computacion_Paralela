@@ -16,7 +16,7 @@ public interface InterfazDeServer extends Remote{
     public Auto Auto(String patente, String conductor, String tipoCombustible) throws RemoteException;
 
     public String getToken() throws RemoteException;
-    String getDataFromApi() throws RemoteException;
+    public ArrayList<Estacion> getDataFromApi() throws RemoteException;
 
     public void agregarAuto() throws IOException, RemoteException;
     public ArrayList<Estacion> getBencinerasPorComunaYMarca(String comuna, String marca) throws RemoteException, JsonMappingException, JsonProcessingException;

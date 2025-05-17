@@ -217,13 +217,13 @@ public class ServerImpl implements InterfazDeServer{
 	}
 
 	@Override
-	public String getDataFromApi() throws RemoteException {
+	public ArrayList<Estacion> getDataFromApi() throws RemoteException {
 	    String token = getToken();
 	    if (token == null) {
 	        throw new RemoteException("No se pudo obtener el token de autenticación.");
 	    }
 
-	    String output = null;
+	    ArrayList<Estacion> estaciones = new ArrayList<>();
 
 	    try {
 	        URL apiUrl = new URL("https://api.cne.cl/api/v4/estaciones");
@@ -236,8 +236,8 @@ public class ServerImpl implements InterfazDeServer{
 	        int responseCode = connection.getResponseCode();
 
 	        if (responseCode == HttpURLConnection.HTTP_OK) {
-	            String encoding = connection.getContentEncoding();
 	            InputStream inputStream;
+	            String encoding = connection.getContentEncoding();
 
 	            if ("gzip".equalsIgnoreCase(encoding)) {
 	                inputStream = new GZIPInputStream(connection.getInputStream());
@@ -245,26 +245,51 @@ public class ServerImpl implements InterfazDeServer{
 	                inputStream = connection.getInputStream();
 	            }
 
-	            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-	            StringBuilder response = new StringBuilder();
-	            String inputLine;
-
-	            while ((inputLine = in.readLine()) != null) {
-	                response.append(inputLine);
+	            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+	            StringBuilder responseBuilder = new StringBuilder();
+	            String line;
+	            while ((line = reader.readLine()) != null) {
+	                responseBuilder.append(line);
 	            }
+	            reader.close();
 
-	            in.close();
-	            output = response.toString();
+	            String json = responseBuilder.toString();
+
+	            ObjectMapper objectMapper = new ObjectMapper();
+	            JsonNode root = objectMapper.readTree(json);
+
+	            for (JsonNode estacion : root) {
+	                String comunaActual = estacion.path("ubicacion").path("nombre_comuna").asText();
+	                String direccion = estacion.path("ubicacion").path("direccion").asText();
+	                String marcaActual = estacion.path("distribuidor").path("marca").asText();
+
+	                String precio93 = estacion.path("precios").path("93").path("precio").asText(null);
+	                String precio95 = estacion.path("precios").path("95").path("precio").asText(null);
+	                String precio97 = estacion.path("precios").path("97").path("precio").asText(null);
+	                String precioDi  = estacion.path("precios").path("DI").path("precio").asText(null);
+	                String precioKe  = estacion.path("precios").path("KE").path("precio").asText(null);
+
+	                Estacion estacionObjeto = new Estacion(
+	                    marcaActual, comunaActual, direccion,
+	                    precio93, precio95, precio97, precioDi, precioKe
+	                );
+	                estaciones.add(estacionObjeto);
+	            }
 	        } else {
-	            System.out.println("Error al conectar a la API. Código de respuesta: " + responseCode);
+	            throw new RemoteException("Error al conectar a la API. Código de respuesta: " + responseCode);
 	        }
 
 	    } catch (Exception e) {
 	        e.printStackTrace();
+	        throw new RemoteException("Error al obtener o procesar los datos de la API.", e);
 	    }
 
-	    return output;
+	    return estaciones;
 	}
+
+
+
+
 	
 	private String normalize(String input) {
 	    return Normalizer.normalize(input, Normalizer.Form.NFD)
@@ -275,6 +300,7 @@ public class ServerImpl implements InterfazDeServer{
 	@Override
 	public ArrayList<Estacion> getBencinerasPorComunaYMarca(String comuna, String marca) throws RemoteException, JsonProcessingException {
 	    ObjectMapper mapper = new ObjectMapper();
+	    /*
 	    String json = getDataFromApi();
 
 	    if (json == null || json.isEmpty()) {
@@ -305,60 +331,35 @@ public class ServerImpl implements InterfazDeServer{
 	            resultado.add(estacionObjeto);
 	        }
 	    }
-
+	    */
+		ArrayList<Estacion> resultado = new ArrayList<>();
 	    return resultado;
 	}
 
 	@Override
-	public ArrayList<Estacion> getPrecioxComuna(String tipoDeCombustible, String comuna) throws JsonMappingException, JsonProcessingException, RemoteException {
-	    ObjectMapper objectMapper = new ObjectMapper();
-	    String json = getDataFromApi();
-	    JsonNode root = objectMapper.readTree(json); 
-	    JsonNode data = root.path("data");
+	public ArrayList<Estacion> getPrecioxComuna(String tipoDeCombustible, String comuna) throws RemoteException {
+	    ArrayList<Estacion> todasLasEstaciones = getDataFromApi();
 	    ArrayList<Estacion> resultado = new ArrayList<>();
 
-	    for (JsonNode estacion : data) {
-	        String comunaActual = estacion.path("ubicacion").path("nombre_comuna").asText();
-
-	        if (comunaActual.equalsIgnoreCase(comuna)) {
-	            String direccion = estacion.path("ubicacion").path("direccion").asText();
-	            String marcaActual = estacion.path("distribuidor").path("marca").asText();
-	            String precio = estacion.path("precios").path(tipoDeCombustible).path("precio").asText(null);
-	            
-	            if (precio == null) {
-	                precio = "0"; 
-	            }
-
-	            String precio93 = estacion.path("precios").path("93").path("precio").asText(null);
-	            String precio95 = estacion.path("precios").path("95").path("precio").asText(null);
-	            String precio97 = estacion.path("precios").path("97").path("precio").asText(null);
-	            String precioDi  = estacion.path("precios").path("DI").path("precio").asText(null);
-	            String precioKe  = estacion.path("precios").path("KE").path("precio").asText(null);
-
-	            Estacion estacionObjeto = new Estacion(marcaActual, comunaActual, direccion, precio93, precio95, precio97, precioDi, precioKe);
-	            resultado.add(estacionObjeto);
+	    for (Estacion estacion : todasLasEstaciones) {
+	        if (estacion.getComunaActual().equalsIgnoreCase(comuna)) {
+	            resultado.add(estacion);
 	        }
 	    }
 
 	    Collections.sort(resultado, new Comparator<Estacion>() {
 	        @Override
 	        public int compare(Estacion e1, Estacion e2) {
-
-	            Double precio1 = null;
-	            Double precio2 = null;
-
 	            try {
-	                precio1 = Double.parseDouble(e1.getPrecio(tipoDeCombustible)); 
-	                precio2 = Double.parseDouble(e2.getPrecio(tipoDeCombustible));
+	                Double precio1 = Double.parseDouble(e1.getPrecio(tipoDeCombustible));
+	                Double precio2 = Double.parseDouble(e2.getPrecio(tipoDeCombustible));
+	                return precio1.compareTo(precio2);
 	            } catch (NumberFormatException e) {
 	                return 0;
 	            }
-
-	            return precio1.compareTo(precio2);
 	        }
 	    });
 
 	    return resultado;
 	}
-	
 }

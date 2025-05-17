@@ -1,6 +1,6 @@
 package common;
-
-public class Estacion{
+import java.io.Serializable;
+public class Estacion implements Serializable{
     private String marca;
     private String comuna;
     private String direccion;

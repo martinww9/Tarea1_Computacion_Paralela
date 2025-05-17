@@ -50,7 +50,7 @@ public class Client {
         server.agregarAuto();  // Si necesitas modificar la lógica de agregar, debes adaptarla al contexto de "Auto"
     }
 
-    String getDataFromApi() throws RemoteException {
+    public ArrayList<Estacion> getDataFromApi() throws RemoteException {
         
     	System.out.println(server.getDataFromApi());
     	
@@ -237,18 +237,13 @@ public class Client {
 	    String comuna = scanner .nextLine();
 
 	    String tipoDeCombustible = autoSeleccionado.getTipoCombustible();
-	     
 	    ArrayList<Estacion> bencineras = server.getPrecioxComuna(tipoDeCombustible,  comuna);
-	    
 	    for(int i = 0 ; i < bencineras.size() ; i++) {
 	    	Estacion bencineraActual = bencineras.get(i);
 	    	String ubicacion = bencineraActual.getDireccion();
 	    	String precio = bencineraActual.getPrecio(tipoDeCombustible);
 	    	String marca = bencineraActual.getMarcaActual();
-	    	
 		    System.out.println("Marca: " + marca + "Precio: " + precio + "Ubicación: "+ ubicacion);
 	    }
-	    
 	}
-	
 }
