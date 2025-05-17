@@ -63,7 +63,7 @@ public class Client {
         return valores_de_uf;
     }
 
-	public void seleccionarAuto() throws RemoteException {
+	public void seleccionarAuto() throws RemoteException, JsonMappingException, JsonProcessingException {
 		ArrayList<Auto> autos = server.getAutos();
 		
 		System.out.println("Seleccione un auto:");
@@ -195,9 +195,9 @@ public class Client {
 	        default:
 	            System.out.println("Tipo de bencina no válido.");
 	            return;
-	            
+	    }
 	     
-        System.out.print("Ingrese el gasto total en bencina (en moneda): ");
+	    System.out.print("Ingrese el gasto total en bencina (en moneda): ");
         double gastoTotal = scanner.nextDouble();
 
         // Calcular la cantidad de litros

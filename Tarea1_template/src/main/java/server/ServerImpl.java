@@ -1,5 +1,7 @@
 package server;
 
+
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -25,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import common.Auto;
 import common.Estacion;
 import common.InterfazDeServer; 
-import common.Persona;
 
 public class ServerImpl implements InterfazDeServer{
 	
@@ -98,7 +99,7 @@ public class ServerImpl implements InterfazDeServer{
 	}
 	
 	@Override
-	public void agregarAuto() throws IOException {
+	public void agregarAuto() throws IOException, RemoteException {
 		
 		System.out.println("Ingrese la patente del vehículo:");
 		String patente = (new BufferedReader(new InputStreamReader(System.in)).readLine());
@@ -229,7 +230,7 @@ public class ServerImpl implements InterfazDeServer{
 	    return resultado;
 	}
 
-	public ArrayList<Estacion> getPrecioxComuna(String tipoDeCombustible, String comuna) {
+	public ArrayList<Estacion> getPrecioxComuna(String tipoDeCombustible, String comuna) throws JsonMappingException, JsonProcessingException, RemoteException {
 	    ObjectMapper objectMapper = new ObjectMapper();
 	    String json = getDataFromApi();
 	    JsonNode root = objectMapper.readTree(json); 
@@ -241,7 +242,7 @@ public class ServerImpl implements InterfazDeServer{
 
 	        if (comunaActual.equalsIgnoreCase(comuna)) {
 	            String direccion = estacion.path("ubicacion").path("direccion").asText();
-
+	            String marcaActual = estacion.path("distribuidor").path("marca").asText();
 	            String precio = estacion.path("precios").path(tipoDeCombustible).path("precio").asText(null);
 	            
 	            if (precio == null) {
@@ -278,6 +279,12 @@ public class ServerImpl implements InterfazDeServer{
 	    });
 
 	    return resultado;
+	}
+
+	@Override
+	public Object[] getUF() throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }
