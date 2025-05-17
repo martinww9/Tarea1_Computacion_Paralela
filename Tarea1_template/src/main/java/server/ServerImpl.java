@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import java.sql.PreparedStatement;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -136,12 +137,46 @@ public class ServerImpl implements InterfazDeServer{
 		Auto auto = new Auto(patente, conductor, tipoCombustible);
 		
 		BD_copia.add(auto);
+		insertar_BD(auto);
+
 	}
+	
+	public void insertar_BD(Auto auto) {
+		Connection connection = null;
+		PreparedStatement ps = null;
+	    try {
+	        String url = "jdbc:mysql://localhost:3306/empresa_colectivos";
+	        String username = "root";
+	        String password_BD = "";
+
+	        connection = DriverManager.getConnection(url, username, password_BD);
+
+	        String sql = "INSERT INTO auto (patente, conductor, tipo_combustible) VALUES (?, ?, ?)";
+	        ps = connection.prepareStatement(sql);
+	        ps.setString(1, auto.getPatente());
+	        ps.setString(2, auto.getConductor());
+	        ps.setString(3, auto.getTipoCombustible());
+
+	        int filas = ps.executeUpdate();
+
+	        if (filas > 0) {
+	            System.out.println("Auto insertado correctamente.");
+	        } else {
+	            System.out.println("No se insertó el auto.");
+	        }
+	    } catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("No se pudo conectar a la BD");
+		}
+	}
+
+
+
 	
 	@Override
 	public String getToken() throws RemoteException{
-		String email = "CORREO";
-        String password = "CONTRASEÑA";
+		String email = "davidm2201@hotmail.com";
+        String password = "proyectoparalela1";
         String urlString = "https://api.cne.cl/api/login?email=" + email + "&password=" + password;
 
         try {
