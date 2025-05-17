@@ -292,10 +292,11 @@ public class ServerImpl implements InterfazDeServer{
 
 	
 	private String normalize(String input) {
-	    return Normalizer.normalize(input, Normalizer.Form.NFD)
-	                     .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
-	                     .toLowerCase();
+		if (input == null) return "";
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
+        return normalized.replaceAll("\\p{M}", "").toLowerCase();
 	}
+	
 
 	@Override
 	public ArrayList<Estacion> getBencinerasPorComunaYMarca(String comuna, String marca) throws RemoteException, JsonProcessingException {
@@ -342,8 +343,12 @@ public class ServerImpl implements InterfazDeServer{
 	    ArrayList<Estacion> resultado = new ArrayList<>();
 
 	    for (Estacion estacion : todasLasEstaciones) {
-	        if (estacion.getComunaActual().equalsIgnoreCase(comuna)) {
-	            resultado.add(estacion);
+	        if (normalize(estacion.getComunaActual()).equalsIgnoreCase(normalize(comuna))) {
+	        	String precio = estacion.getPrecio(tipoDeCombustible);
+	            if (precio != null && !precio.isEmpty() && !precio.equals("0")) {
+	                // Solo agregamos si precio es válido y distinto de "0"
+	                resultado.add(estacion);
+	            }
 	        }
 	    }
 
@@ -351,8 +356,15 @@ public class ServerImpl implements InterfazDeServer{
 	        @Override
 	        public int compare(Estacion e1, Estacion e2) {
 	            try {
-	                Double precio1 = Double.parseDouble(e1.getPrecio(tipoDeCombustible));
-	                Double precio2 = Double.parseDouble(e2.getPrecio(tipoDeCombustible));
+	                String p1 = e1.getPrecio(tipoDeCombustible);
+	                String p2 = e2.getPrecio(tipoDeCombustible);
+
+	                if (p1 == null || p1.isEmpty()) p1 = "0";
+	                if (p2 == null || p2.isEmpty()) p2 = "0";
+
+	                Double precio1 = Double.parseDouble(p1);
+	                Double precio2 = Double.parseDouble(p2);
+
 	                return precio1.compareTo(precio2);
 	            } catch (NumberFormatException e) {
 	                return 0;

@@ -243,7 +243,7 @@ public class Client {
 	    	String ubicacion = bencineraActual.getDireccion();
 	    	String precio = bencineraActual.getPrecio(tipoDeCombustible);
 	    	String marca = bencineraActual.getMarcaActual();
-		    System.out.println("Marca: " + marca + "Precio: " + precio + "Ubicación: "+ ubicacion);
+		    System.out.println("Marca: " + marca + " Precio: " + precio + " Ubicación: "+ ubicacion);
 	    }
 	}
 }
