@@ -1,7 +1,5 @@
 package server;
 
-
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -33,20 +31,20 @@ public class ServerImpl implements InterfazDeServer{
 	public ServerImpl() throws RemoteException {
 		conectarBD();
 		UnicastRemoteObject.exportObject(this, 0);
-		//crearBD();
 	}
 	
 	private ArrayList<Auto> BD_copia = new ArrayList<>();
 	
-	
-	public void conectarBD () {
+
+	@Override
+	public void conectarBD () throws RemoteException {
 		Connection connection = null;
 		Statement query = null;
 		ResultSet resultados = null;
 		//PreparedStatement test = null
 		
 		try {
-			String url = "jdbc:mysql://localhost:3306/ici4344";
+			String url = "jdbc:mysql://localhost:3306/empresa_colectivos";
 			String username = "root";
 			String password_BD = "";
 			
@@ -54,7 +52,7 @@ public class ServerImpl implements InterfazDeServer{
 			
 			//Met
 			query = connection.createStatement();
-			String sql = "SELECT * FROM bd_acme";
+			String sql = "SELECT * FROM auto";
 			//INSERT para agregar datos a la BD, PreparedStatement
 			//Delete
 			//UPDATE
@@ -64,7 +62,7 @@ public class ServerImpl implements InterfazDeServer{
 				//Revisar VALORES de BD
 				String patente = resultados.getString("patente");
 				String conductor = resultados.getString("conductor");
-				String tipoCombustible = resultados.getString("Tipo de Combustible");
+				String tipoCombustible = resultados.getString("tipo_combustible");
 				
 				
 				Auto newAuto = new Auto(patente, conductor, tipoCombustible);
@@ -88,12 +86,12 @@ public class ServerImpl implements InterfazDeServer{
 	}
 	
 	@Override
-	public ArrayList<Auto> getAutos() {
+	public ArrayList<Auto> getAutos() throws RemoteException {
 		return BD_copia;
 	}
 	
 	@Override
-	public Auto Auto(String patente, String conductor, String tipoCombustible) {
+	public Auto Auto(String patente, String conductor, String tipoCombustible) throws RemoteException{
 		Auto auto = new Auto(patente, conductor, tipoCombustible);
 		return auto;
 	}
@@ -101,42 +99,62 @@ public class ServerImpl implements InterfazDeServer{
 	@Override
 	public void agregarAuto() throws IOException, RemoteException {
 		
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		
 		System.out.println("Ingrese la patente del vehículo:");
-		String patente = (new BufferedReader(new InputStreamReader(System.in)).readLine());
+		String patente = reader.readLine();
 		System.out.println("");
 		
 		System.out.println("Ingrese el conductor del vehículo: ");
-		String conductor = (new BufferedReader(new InputStreamReader(System.in)).readLine());
+		String conductor = reader.readLine();
 		System.out.println("");
 		
-		System.out.println("Ingrese el tipo de combustible del vehículo: ");
-		String tipoCombustible = (new BufferedReader(new InputStreamReader(System.in)).readLine());
-		System.out.println("");
-		//agregar opciones
+		String tipoCombustible = "";
+	    boolean entradaValida = false;
+
+	    while (!entradaValida) {
+	        System.out.println("Seleccione el tipo de combustible del vehículo:");
+	        System.out.println("1. 93");
+	        System.out.println("2. 95");
+	        System.out.println("3. 97");
+	        System.out.println("4. Kerosene");
+	        System.out.println("5. Diesel");
+	        System.out.print("Ingrese el número o nombre de la opción: ");
+	        String entrada = reader.readLine().trim();
+
+	        switch (entrada) {
+	            case "1": tipoCombustible = "93"; entradaValida = true; break;
+	            case "2": tipoCombustible = "95"; entradaValida = true; break;
+	            case "3": tipoCombustible = "97"; entradaValida = true; break;
+	            case "4": tipoCombustible = "KE"; entradaValida = true; break;
+	            case "5": tipoCombustible = "DI"; entradaValida = true; break;
+	            default:
+	                System.out.println("Opción inválida. Intente nuevamente.\n");
+	        }
+	    }
+		
 		Auto auto = new Auto(patente, conductor, tipoCombustible);
 		
 		BD_copia.add(auto);
 	}
 	
-	public String getToken() {
+	@Override
+	public String getToken() throws RemoteException{
 		String email = "CORREO";
         String password = "CONTRASEÑA";
         String urlString = "https://api.cne.cl/api/login?email=" + email + "&password=" + password;
 
         try {
-            // Crear la URL de autenticación
             URL url = new URL(urlString);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
 
-            // Verificar el estado de la respuesta
             int status = con.getResponseCode();
             if (status != 200) {
                 System.out.println("Error al autenticar. Código HTTP: " + status);
                 return null;
             }
 
-            // Leer la respuesta de la API
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             String inputLine;
             StringBuilder content = new StringBuilder();
@@ -146,7 +164,6 @@ public class ServerImpl implements InterfazDeServer{
             in.close();
             con.disconnect();
 
-            // Extraer el token de la respuesta
             String response = content.toString();
             String token = response.split(":\"")[1].split("\"")[0];
             return token;
@@ -200,6 +217,7 @@ public class ServerImpl implements InterfazDeServer{
 		
 	}
 	
+	@Override
 	public ArrayList<Estacion> getBencinerasPorComunaYMarca(String comuna, String marca) throws RemoteException, JsonMappingException, JsonProcessingException {
 		ObjectMapper mapper = new ObjectMapper();
         String json = getDataFromApi();
@@ -230,6 +248,7 @@ public class ServerImpl implements InterfazDeServer{
 	    return resultado;
 	}
 
+	@Override
 	public ArrayList<Estacion> getPrecioxComuna(String tipoDeCombustible, String comuna) throws JsonMappingException, JsonProcessingException, RemoteException {
 	    ObjectMapper objectMapper = new ObjectMapper();
 	    String json = getDataFromApi();
@@ -279,12 +298,6 @@ public class ServerImpl implements InterfazDeServer{
 	    });
 
 	    return resultado;
-	}
-
-	@Override
-	public Object[] getUF() throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
 	}
 	
 }

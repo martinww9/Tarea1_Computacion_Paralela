@@ -50,18 +50,6 @@ public class Client {
         return server.getDataFromApi();
     }
 
-    Object[] getUF() throws RemoteException {
-        Object[] valores_de_uf = server.getUF();
-
-        if(valores_de_uf == null) {
-            // error
-        } else {
-            String codigo = (String) valores_de_uf[0];
-            String nombre = (String) valores_de_uf[1];
-        }
-
-        return valores_de_uf;
-    }
 
 	public void seleccionarAuto() throws RemoteException, JsonMappingException, JsonProcessingException {
 		ArrayList<Auto> autos = server.getAutos();
@@ -95,7 +83,7 @@ public class Client {
 }
 
 	private void menuSeleccion(Auto autoSeleccionado) throws JsonMappingException, JsonProcessingException, RemoteException {
-		// TODO Auto-generated method stub
+
 		Scanner scanner = new Scanner(System.in);
 	    boolean salir = false;
 	    
@@ -139,10 +127,9 @@ public class Client {
 
 
 	private void registrarCompra(Auto autoSeleccionado) throws JsonMappingException, JsonProcessingException, RemoteException {
-	    // Aquí puedes agregar el código para registrar una compra
-	    // Puedes usar el objeto 'autoSeleccionado' para obtener los detalles del auto
-	    System.out.println("Registrar compra para el auto con patente: " + autoSeleccionado.getPatente());
-	    // Implementa lo que necesitas para registrar la compra...
+
+		System.out.println("Registrar compra para el auto con patente: " + autoSeleccionado.getPatente());
+
 	    System.out.print("Ingrese la comuna donde realizó la compra: ");
 	    Scanner scanner = new Scanner(System.in);;
 		
@@ -162,7 +149,7 @@ public class Client {
 
 	    System.out.print("Seleccione una estación ingresando el número correspondiente: ");
 	    int seleccion = scanner.nextInt();
-	    scanner.nextLine(); // Limpiar buffer
+	    scanner.nextLine(); 
 
 	    if (seleccion < 1 || seleccion > estaciones.size()) {
 	        System.out.println("Selección inválida.");
@@ -175,7 +162,6 @@ public class Client {
 	    String tipoBencinaAuto = autoSeleccionado.getTipoCombustible();
 	    String precioSeleccionado = "";
 
-	    // Compara el tipo de bencina con los precios de la estación seleccionada
 	    switch (tipoBencinaAuto) {
 	        case "93":
 	            precioSeleccionado = estacionSeleccionada.getPrecio93();
@@ -195,21 +181,39 @@ public class Client {
 	        default:
 	            System.out.println("Tipo de bencina no válido.");
 	            return;
+	            
 	    }
-	     
-	    System.out.print("Ingrese el gasto total en bencina (en moneda): ");
-        double gastoTotal = scanner.nextDouble();
+	    
+	    float gastoTotal = 0;
+	    boolean entradaValida = false;
 
-        // Calcular la cantidad de litros
-        double precioPorLitro = Double.parseDouble(precioSeleccionado);
-        double litros = gastoTotal / precioPorLitro;
+	    while (!entradaValida) {
+	        System.out.println("Ingrese el gasto total en bencina (en moneda): ");
+	        String entrada = scanner.nextLine();
+	        try {
+	            gastoTotal = Float.parseFloat(entrada);
+	            entradaValida = true;
+	        } catch (NumberFormatException e) {
+	            System.out.println("El ingreso no corresponde a un número válido. Intente nuevamente.");
+	        }
+	    }
+	    
+	    entradaValida = false;
+	    
+
+	    float precioPorLitro = Float.parseFloat(precioSeleccionado);
+	    float litros = gastoTotal / precioPorLitro;
 
         System.out.println("La cantidad de litros comprados es: " + litros);
         
+        
+	    System.out.println("Ingrese la fecha de la compra. FORMATO: Año-Mes-Día, Ejemplo: 2000-02-30");
+        String fechaCompra = scanner.nextLine();
+        
+        
         int idCompra = generarIdCompra();
-        RegistroCompra registroCompra = new RegistroCompra(idCompra, autoSeleccionado.getPatente(), litros, gastoTotal);
+        RegistroCompra registroCompra = new RegistroCompra(idCompra, autoSeleccionado.getPatente(), litros, gastoTotal, fechaCompra);
     
-	    // Aquí puedes continuar con la lógica de registro, por ejemplo:
 	    System.out.println("Compra registrada en la comuna '" + comuna + "' en la estación de servicio '" + marca + "'.");
 	    
 	}
@@ -217,9 +221,7 @@ public class Client {
 	
 
 	private void buscarBencinerasPorComuna(Auto autoSeleccionado) {
-	    // Aquí puedes agregar el código para buscar bencineras por comuna
 	    System.out.println("Buscar bencineras por comuna...");
-	    // Implementa lo que necesitas para buscar las bencineras...
 	}
 	
 }
