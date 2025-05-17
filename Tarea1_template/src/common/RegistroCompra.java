@@ -1,19 +1,18 @@
 package common;
 
-import java.time.LocalDateTime;
 
 public class RegistroCompra {
     private int id;
     private String patente;
-    private double litros;
-    private double costo;
-    // private LocalDateTime fecha;
+    private float litros;
+    private float costo;
+    private String fecha;
 
 
-    public RegistroCompra(int id, String patente, double litros, double costo) {
+    public RegistroCompra(int id, String patente, float litros, float costo, String fecha) {
         setId(id);
         setPatente(patente);
-       // setFecha(fecha);
+        setFecha(fecha);
         setLitros(litros);
         setCosto(costo);
     }
@@ -33,28 +32,28 @@ public class RegistroCompra {
     public String getPatente() {
         return patente;
     }
-/*
-    private void setFecha(LocalDateTime fecha) {
+
+    private void setFecha(String fecha) {
         this.fecha = fecha;
     }
 
-    public LocalDateTime getFecha() {
+    public String getFecha() {
         return fecha;
     }
-*/
-    private void setLitros(double litros) {
+
+    private void setLitros(float litros) {
         this.litros = litros;
     }
 
-    public double getLitros() {
+    public float getLitros() {
         return litros;
     }
 
-    private void setCosto(double costo) {
+    private void setCosto(float costo) {
         this.costo = costo;
     }
 
-    public double getCosto() {
+    public float getCosto() {
         return costo;
     }
 }

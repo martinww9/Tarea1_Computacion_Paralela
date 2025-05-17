@@ -10,13 +10,15 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 
 public interface InterfazDeServer extends Remote{
+	public void conectarBD ();
+	
 	public ArrayList <Auto> getAutos() throws RemoteException;
 	public Auto Auto(String patente, String conductor, String tipoCombustible);
 	
-	Object[] getUF() throws RemoteException;
+	public String getToken() throws RemoteException;
 	String getDataFromApi() throws RemoteException;
 	
 	public void agregarAuto() throws IOException;
 	public ArrayList<Estacion> getBencinerasPorComunaYMarca(String comuna, String marca) throws RemoteException, JsonMappingException, JsonProcessingException;
-	
+	public ArrayList<Estacion> getPrecioxComuna(String tipoDeCombustible, String comuna) throws JsonMappingException, JsonProcessingException, RemoteException;
 }

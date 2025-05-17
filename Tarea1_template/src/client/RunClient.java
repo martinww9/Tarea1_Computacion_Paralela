@@ -22,7 +22,6 @@ public class RunClient {
 			System.out.println("1. Mostrar Autos");
 			System.out.println("2. Agregar Autos");
 			System.out.println("3. Seleccionar Auto");
-			System.out.println("3. Para ver datos de la API");
 			System.out.println("4. Salir\n");
 			
 			
