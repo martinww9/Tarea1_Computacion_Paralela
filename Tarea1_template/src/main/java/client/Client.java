@@ -24,7 +24,7 @@ public class Client {
     public Client() {};
 
     public void startClient() throws RemoteException, NotBoundException {
-        Registry registry = LocateRegistry.getRegistry("localhost", 1030);
+        Registry registry = LocateRegistry.getRegistry("localhost", 1032);
         server = (InterfazDeServer) registry.lookup("server");
     }
 
@@ -220,8 +220,26 @@ public class Client {
 	
 	
 
-	private void buscarBencinerasPorComuna(Auto autoSeleccionado) {
+	private void buscarBencinerasPorComuna(Auto autoSeleccionado) throws JsonMappingException, JsonProcessingException, RemoteException {
 	    System.out.println("Buscar bencineras por comuna...");
+	    Scanner scanner = new Scanner(System.in);;
+	    
+	    System.out.println("Ingrese comuna");
+	    String comuna = scanner .nextLine();
+
+	    String tipoDeCombustible = autoSeleccionado.getTipoCombustible();
+	     
+	    ArrayList<Estacion> bencineras = server.getPrecioxComuna(tipoDeCombustible,  comuna);
+	    
+	    for(int i = 0 ; i < bencineras.size() ; i++) {
+	    	Estacion bencineraActual = bencineras.get(i);
+	    	String ubicacion = bencineraActual.getDireccion();
+	    	String precio = bencineraActual.getPrecio(tipoDeCombustible);
+	    	String marca = bencineraActual.getMarcaActual();
+	    	
+		    System.out.println("Marca: " + marca + "Precio: " + precio + "Ubicación: "+ ubicacion);
+	    }
+	    
 	}
 	
 }

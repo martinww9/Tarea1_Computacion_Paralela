@@ -140,8 +140,8 @@ public class ServerImpl implements InterfazDeServer{
 	
 	@Override
 	public String getToken() throws RemoteException{
-		String email = "CORREO";
-        String password = "CONTRASEÑA";
+		String email = "davidm2201@hotmail.com";
+        String password = "proyectoparalela1";
         String urlString = "https://api.cne.cl/api/login?email=" + email + "&password=" + password;
 
         try {
