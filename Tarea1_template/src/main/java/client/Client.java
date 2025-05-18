@@ -67,6 +67,20 @@ public class Client {
         
     }
 
+    public void quitarAuto() throws IOException {
+        int cantidadAntes = server.getAutos().size();
+
+        server.eliminarAuto();
+
+        int cantidadDespues = server.getAutos().size();
+
+        if (cantidadDespues < cantidadAntes) {
+            System.out.println("Auto eliminado correctamente.");
+        } else {
+            System.out.println("No se pudo eliminar el auto.");
+        } 
+    }
+    
     public ArrayList<Estacion> getDataFromApi() throws RemoteException {
         
     	System.out.println(server.getDataFromApi());

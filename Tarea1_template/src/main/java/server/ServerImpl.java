@@ -172,6 +172,67 @@ public class ServerImpl implements InterfazDeServer{
 		}
 	}
 	
+	public void eliminarAuto() throws IOException, RemoteException {
+	    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+	    if (BD_copia.isEmpty()) {
+	        System.out.println("No hay autos registrados para eliminar.");
+	        return;
+	    }
+
+	    System.out.println("Lista de autos registrados:");
+	    for (int i = 0; i < BD_copia.size(); i++) {
+	        Auto auto = BD_copia.get(i);
+	        System.out.println((i + 1) + ". Patente: " + auto.getPatente() + " | Conductor: " + auto.getConductor() + " | Combustible: " + auto.getTipoCombustible());
+	    }
+
+	    System.out.print("\nIngrese el número del auto que desea eliminar: ");
+	    String entrada = reader.readLine().trim();
+
+	    try {
+	        int seleccion = Integer.parseInt(entrada);
+
+	        if (seleccion < 1 || seleccion > BD_copia.size()) {
+	            System.out.println("Número fuera de rango.");
+	            return;
+	        }
+
+	        Auto autoSeleccionado = BD_copia.get(seleccion - 1);
+	        BD_copia.remove(seleccion - 1);
+	        eliminar_BD(autoSeleccionado.getPatente());
+
+	        System.out.println("Auto eliminado correctamente: " + autoSeleccionado.getPatente());
+	    } catch (NumberFormatException e) {
+	        System.out.println("Entrada inválida. Debe ingresar un número.");
+	    }
+	}
+
+	public void eliminar_BD(String patente) {
+	    Connection connection = null;
+	    PreparedStatement ps = null;
+	    try {
+	        String url = "jdbc:mysql://localhost:3306/empresa_colectivos";
+	        String username = "root";
+	        String password_BD = "";
+
+	        connection = DriverManager.getConnection(url, username, password_BD);
+
+	        String sql = "DELETE FROM auto WHERE patente = ?";
+	        ps = connection.prepareStatement(sql);
+	        ps.setString(1, patente);
+
+	        int filas = ps.executeUpdate();
+
+	        if (filas == 0) {
+	            System.out.println("No se encontró un auto con esa patente en la base de datos.");
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.out.println("Error al conectar o eliminar en la base de datos.");
+	    }
+	}
+
+	
 	@Override
 	public String getToken() throws RemoteException {
 	    String email = "davidm2201@hotmail.com";
