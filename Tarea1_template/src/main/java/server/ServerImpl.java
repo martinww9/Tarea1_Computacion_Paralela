@@ -39,7 +39,6 @@ public class ServerImpl implements InterfazDeServer{
 	
 	private ArrayList<Auto> BD_copia = new ArrayList<>();
 	
-
 	@Override
 	public void conectarBD () throws RemoteException {
 		Connection connection = null;
@@ -172,9 +171,6 @@ public class ServerImpl implements InterfazDeServer{
 			System.out.println("No se pudo conectar a la BD");
 		}
 	}
-
-
-
 	
 	@Override
 	public String getToken() throws RemoteException {
@@ -286,17 +282,12 @@ public class ServerImpl implements InterfazDeServer{
 
 	    return estaciones;
 	}
-
-
-
-
 	
 	private String normalize(String input) {
 		if (input == null) return "";
         String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
         return normalized.replaceAll("\\p{M}", "").toLowerCase();
 	}
-	
 
 	@Override
 	public ArrayList<Estacion> getBencinerasPorComunaYMarca(String comuna, String marca) throws RemoteException, JsonProcessingException {
@@ -321,7 +312,6 @@ public class ServerImpl implements InterfazDeServer{
 	        if (normalize(estacion.getComunaActual()).equalsIgnoreCase(normalize(comuna))) {
 	        	String precio = estacion.getPrecio(tipoDeCombustible);
 	            if (precio != null && !precio.isEmpty() && !precio.equals("0")) {
-	                // Solo agregamos si precio es válido y distinto de "0"
 	                resultado.add(estacion);
 	            }
 	        }

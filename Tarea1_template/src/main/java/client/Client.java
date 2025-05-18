@@ -34,6 +34,12 @@ public class Client {
 
     public void mostrarAutos() throws RemoteException {
         ArrayList<Auto> autos = server.getAutos();
+        
+        if(autos.isEmpty()) {
+        	System.out.println("No hay autos registrados");
+        	return;
+        }
+        
         int contador = 1;
 
         System.out.println("Autos:");
@@ -47,7 +53,18 @@ public class Client {
     }
 
     public void agregarAuto() throws IOException {
-        server.agregarAuto();  // Si necesitas modificar la lógica de agregar, debes adaptarla al contexto de "Auto"
+        int cantidadAntes = server.getAutos().size();
+
+        server.agregarAuto();
+
+        int cantidadDespues = server.getAutos().size();
+
+        if (cantidadDespues > cantidadAntes) {
+            System.out.println("Auto agregado correctamente.");
+        } else {
+            System.out.println("No se pudo agregar el auto.");
+        } 
+        
     }
 
     public ArrayList<Estacion> getDataFromApi() throws RemoteException {
@@ -61,32 +78,32 @@ public class Client {
 	public void seleccionarAuto() throws RemoteException, JsonMappingException, JsonProcessingException {
 		ArrayList<Auto> autos = server.getAutos();
 		
+        if(autos.isEmpty()) {
+        	System.out.println("No hay autos registrados");
+        	return;
+        }
+		
 		System.out.println("Seleccione un auto:");
 	    for (int i = 0; i < autos.size(); i++) {
 	        Auto auto = autos.get(i);
 	        System.out.println((i + 1) + ". Patente: " + auto.getPatente());
 	    }
 	    
-	    // Leer la entrada del usuario para seleccionar un auto
 	    Scanner scanner = new Scanner(System.in);
 	    System.out.print("Ingrese el número del auto que desea seleccionar: ");
 	    int seleccion = scanner.nextInt();
 	    
 	    Auto autoSeleccionado = null;
-	    
-	    // Validar la selección
+
 	    if (seleccion < 1 || seleccion > autos.size()) {
 	        System.out.println("Selección inválida.");
+	        return;
 	    } else {
-	        // Obtener el auto seleccionado
 	        autoSeleccionado = autos.get(seleccion - 1);
 	        System.out.println("Auto seleccionado: Patente " + autoSeleccionado.getPatente());
 	    }
 	    
 	    menuSeleccion(autoSeleccionado);
-	    
-	    
-	    
 }
 
 	private void menuSeleccion(Auto autoSeleccionado) throws JsonMappingException, JsonProcessingException, RemoteException {
@@ -95,28 +112,23 @@ public class Client {
 	    boolean salir = false;
 	    
 	    while (!salir) {
-	        // Mostrar opciones del menú
 	        System.out.println("1. Registrar una compra");
 	        System.out.println("2. Buscar bencineras por comuna");
 	        System.out.println("3. Salir");
 	        System.out.print("Seleccione una opción: ");
 	        
-	        // Leer la entrada del usuario
 	        int opcion = scanner.nextInt();
 	        
 	        switch (opcion) {
 	            case 1:
-	                // Si selecciona registrar una compra
 	                registrarCompra(autoSeleccionado);
 	                break;
 	                
 	            case 2:
-	                // Si selecciona buscar bencineras por comuna
 	                buscarBencinerasPorComuna(autoSeleccionado);
 	                break;
 	                
 	            case 3:
-	                // Si selecciona salir
 	                salir = true;
 	                System.out.println("Saliendo...");
 	                break;
@@ -129,23 +141,18 @@ public class Client {
 	
 	private int generarIdCompra() {
 	    Random random = new Random();
-	    return random.nextInt(100000) + 1; // genera un número entre 1 y 100000
+	    return random.nextInt(100000) + 1;
 	}
-
 
 	private void registrarCompra(Auto autoSeleccionado) throws JsonMappingException, JsonProcessingException, RemoteException {
 
 		System.out.println("Registrar compra para el auto con patente: " + autoSeleccionado.getPatente());
-
+	    Scanner scanner = new Scanner(System.in);
 	    System.out.print("Ingrese la comuna donde realizó la compra: ");
-	    Scanner scanner = new Scanner(System.in);;
-		
 	    String comuna = scanner.nextLine();
-
 	    System.out.print("Ingrese la marca de la estación de servicio donde compró: ");
 	    String marca = scanner.nextLine();
 
-	    
 	    ArrayList<Estacion> estaciones = server.getBencinerasPorComunaYMarca(comuna, marca);
 	    
 	    if (estaciones.isEmpty())  System.out.println("No se encontraron estaciones para esa comuna y marca.");
@@ -208,17 +215,14 @@ public class Client {
 	    }
 	    
 	    entradaValida = false;
-	    
 
 	    float precioPorLitro = Float.parseFloat(precioSeleccionado);
 	    float litros = gastoTotal / precioPorLitro;
 
         System.out.println("La cantidad de litros comprados es: " + litros);
         
-        
-	    System.out.println("Ingrese la fecha de la compra. FORMATO: Año-Mes-Día, Ejemplo: 2000-02-30");
+        System.out.println("Ingrese la fecha de la compra. FORMATO: Año-Mes-Día, Ejemplo: 2000-02-30");
         String fechaCompra = scanner.nextLine();
-        
         
         int idCompra = generarIdCompra();
         RegistroCompra registroCompra = new RegistroCompra(idCompra, autoSeleccionado.getPatente(), litros, gastoTotal, fechaCompra);
@@ -226,24 +230,28 @@ public class Client {
 	    System.out.println("Compra registrada en la comuna '" + comuna + "' en la estación de servicio '" + marca + "'.");
 	    
 	}
-	
-	
 
 	private void buscarBencinerasPorComuna(Auto autoSeleccionado) throws JsonMappingException, JsonProcessingException, RemoteException {
 	    System.out.println("Buscar bencineras por comuna...");
-	    Scanner scanner = new Scanner(System.in);;
+	    Scanner scanner = new Scanner(System.in);
 	    
 	    System.out.println("Ingrese comuna");
 	    String comuna = scanner .nextLine();
 
 	    String tipoDeCombustible = autoSeleccionado.getTipoCombustible();
 	    ArrayList<Estacion> bencineras = server.getPrecioxComuna(tipoDeCombustible,  comuna);
+	    
+	    if (bencineras == null || bencineras.isEmpty()) {
+	        System.out.println("No se encontraron bencineras que cumplan con los requerimientos");
+	        return;
+	    }
+	    
 	    for(int i = 0 ; i < bencineras.size() ; i++) {
 	    	Estacion bencineraActual = bencineras.get(i);
 	    	String ubicacion = bencineraActual.getDireccion();
 	    	String precio = bencineraActual.getPrecio(tipoDeCombustible);
 	    	String marca = bencineraActual.getMarcaActual();
-		    System.out.println("Marca: " + marca + " Precio: " + precio + " Ubicación: "+ ubicacion);
+	    	System.out.println("Precio: " + precio + " | Marca: " + marca + " | Ubicación: " + ubicacion);
 	    }
 	}
 }

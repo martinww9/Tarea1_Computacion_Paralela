@@ -11,11 +11,9 @@ public class RunClient {
 
         Client client = new Client();
         client.startClient();
-
         System.out.println("Cliente Conectado!! \n");
 
         int opcion = 1;
-
         while(opcion != 0) {
 
             System.out.println("Escoja una de las siguientes opciones: \n");
@@ -24,12 +22,7 @@ public class RunClient {
             System.out.println("3. Seleccionar Auto");
             System.out.println("4. VER LA API");
             System.out.println("5. Salir\n");
-
-
-
-
             opcion = Integer.parseInt(new BufferedReader(new InputStreamReader(System.in)).readLine());
-
             System.out.println("");
 
             switch (opcion) {
@@ -53,11 +46,9 @@ public class RunClient {
 
                 case 5:
                     opcion = 0;
+                    System.out.println("Saliendo del programa");
                     break;
             }
-
         }
-
     }
-
 }
